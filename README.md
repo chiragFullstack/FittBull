@@ -1,2 +1,3 @@
 # FittBull
-Shopify Custom App 
+
+Shopify Custom App
