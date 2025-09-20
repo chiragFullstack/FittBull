@@ -1,63 +1,48 @@
-import { pool } from "../config/db";
-import { couponModel } from "../models/couponModel";
+import Coupon, { ICouponModel } from "../models/couponModel";
 
-export const getAllCoupon = async () => {
+
+export const getAllCoupon = async (): Promise<ICouponModel[]> => {
     try {
-        const result = await pool.query(
-            "SELECT id, serial_number, authenticate_code, status FROM couponcode ORDER BY id ASC"
-        );
-        return result.rows;
+        return await Coupon.find().sort({ _id: 1 }); // sort by created order
     } catch (err) {
         throw new Error(`Error fetching coupons: ${(err as Error).message}`);
     }
-}
+};
 
-export const useCoupons = async (couponCode: string) => {
+
+export const useCoupons = async (couponCode: string): Promise<ICouponModel> => {
     try {
-        const result = await pool.query(
-            "SELECT * FROM couponcode WHERE authenticate_code = $1",
-            [couponCode]
-        );
-        if (result.rows.length === 0) {
-            throw new Error("Invalid Coupon Code");
+        const coupon = await Coupon.findOne({ authenticate_code: couponCode });
+
+        if (!coupon) {
+            throw new Error("Coupon code is not matched");
         }
-        else {
-            const coupon = result.rows[0];
-            if (coupon.status !== 'active') {
-                throw new Error("Coupon code is already used");
-            }
-            const updatedRecord = await pool.query(
-                "UPDATE couponcode SET status = 'in-active' WHERE authenticate_code = $1 RETURNING *",
-                [couponCode]
-            );
-            return updatedRecord.rows[0];
+
+        if (coupon.status !== "active") {
+            throw new Error("Coupon is already used");
         }
+
+        coupon.status = "in-active";
+        await coupon.save();
+
+        return coupon;
     } catch (err) {
         throw new Error(`Error using coupon: ${(err as Error).message}`);
     }
-}
-
-
-export const insertManyCoupons = async (coupons: couponModel[]) => {
-    const client = await pool.connect();
-    try {
-        await client.query("BEGIN");
-
-        for (const coupon of coupons) {
-            await client.query(
-                `INSERT INTO couponcode (serial_number, authenticate_code, status)
-         VALUES ($1, $2, $3)
-         ON CONFLICT (authenticate_code) DO NOTHING`,
-                [coupon.serial_number, coupon.authenticate_code, coupon.status || "active"]
-            );
-        }
-
-        await client.query("COMMIT");
-    } catch (err) {
-        await client.query("ROLLBACK");
-        throw err;
-    } finally {
-        client.release();
-    }
 };
 
+
+
+export const insertManyCoupons = async (coupons: ICouponModel[]): Promise<void> => {
+    try {
+        // Use bulk insert, skip duplicates
+        await Coupon.insertMany(coupons, { ordered: false });
+    } catch (err: any) {
+        if (err.code === 11000) {
+            // duplicate key error (unique violation on serial_number)
+            console.warn("Duplicate coupon(s) found, skipped...");
+        } else {
+            throw new Error(`Error inserting coupons: ${(err as Error).message}`);
+        }
+    }
+};

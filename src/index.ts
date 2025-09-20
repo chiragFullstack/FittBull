@@ -1,5 +1,6 @@
 import express from "express";
-import { pool } from "./config/db";
+import connectDB from "./config/db";
+
 import userRoutes from "./routes/userRoutes";
 import couponRoutes from "./routes/couponRoutes";
 
@@ -8,6 +9,7 @@ const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
 
+connectDB();
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/coupons", couponRoutes);
