@@ -27,7 +27,7 @@ export const useCoupons = async (couponCode: string): Promise<ICouponModel> => {
 
         return coupon;
     } catch (err) {
-        throw new Error(`Error using coupon: ${(err as Error).message}`);
+        throw err;
     }
 };
 
