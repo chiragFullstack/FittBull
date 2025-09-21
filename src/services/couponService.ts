@@ -15,11 +15,11 @@ export const useCoupons = async (couponCode: string): Promise<ICouponModel> => {
         const coupon = await Coupon.findOne({ authenticate_code: couponCode });
 
         if (!coupon) {
-            throw new Error("Coupon code is not matched");
+            throw new Error("Product Might be Fake");
         }
 
         if (coupon.status !== "active") {
-            throw new Error("Coupon is already used");
+            throw new Error("Code Already is used");
         }
 
         coupon.status = "in-active";

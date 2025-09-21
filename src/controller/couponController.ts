@@ -24,11 +24,11 @@ export const useCoupons = async (req: Request, res: Response) => {
         const { couponCode } = req.body;
 
         if (!couponCode) {
-            return res.status(400).json({ error: "Coupon code is required" });
+            return res.status(400).json({ error: "Scratch Pin is required" });
         }
 
         const coupon = await couponService.useCoupons(couponCode);
-        res.status(200).json({ message: "Coupon applied successfully", coupon });
+        res.status(200).json({ message: "Product Might be Real", coupon });
     } catch (err) {
         res.status(400).json({ error: (err as Error).message });
     }
