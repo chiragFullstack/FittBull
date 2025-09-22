@@ -28,7 +28,7 @@ export const useCoupons = async (req: Request, res: Response) => {
         }
 
         const coupon = await couponService.useCoupons(couponCode);
-        res.status(200).json({ message: "Product Might be Real", coupon });
+        res.status(200).json({ message: "Congratulations, your product is authentic – FITBULL Nutrition.", coupon });
     } catch (err) {
         res.status(400).json({ error: (err as Error).message });
     }
